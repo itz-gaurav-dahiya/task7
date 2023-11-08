@@ -1,4 +1,4 @@
-const { Client } = require('pg');
+const { Pool } = require('pg');
 const express = require('express');
 const app = express();
 const port = 2410;
@@ -19,30 +19,19 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// const pgConfig = {
-//   user: 'postgres',
-//   host: 'db.amfwwfhjovvvryqpgwpw.supabase.co',
-//   database: 'postgres',
-//   password: 'gaurav@Dahiya',
-//   port: 5432, // or the port for your PostgreSQL server
-// };
-
-const client = new Client({
+const pgConfig = {
   user: 'postgres',
   host: 'db.amfwwfhjovvvryqpgwpw.supabase.co',
   database: 'postgres',
   password: 'gaurav@Dahiya',
-  port: 5432, 
-  ssl:{rejectUnauthorized:false}
-});
+  port: 5432, // or the port for your PostgreSQL server
+};
 
-client.connect(function(res,error){
-  console.log('Connection!!!')
-})
+const pool = new Pool(pgConfig);
 
 app.get('/shops', function (req, res) {
   const query = 'SELECT * FROM shops';
-  client.query(query, (err, result) => {
+  pool.query(query, (err, result) => {
     if (err) {
       res.status(500).send(err.message);
     } else {
@@ -56,26 +45,22 @@ app.post('/shops', async (req, res) => {
     if (!name || !rent) {
       return res.status(400).send("Name and rent are required fields.");
     }
-    const query = 'INSERT INTO shops (name, rent) VALUES ($1, $2) RETURNING *';
-    const values = [name, rent];
-    client.query(query,values,function(err,result){
-      if(err) res.status(400).send(err.message)
-      res.send(`${result.rowCount} insertion successfull`)
-    })
   
-    // try {
-    //   const { rows } = await Client.query(query, values);
-    //   res.status(201).json({ message: 'Shop added', shop: rows[0] });
-    // } catch (err) {
-    //   res.status(500).send(err.message);
-    // }
+    try {
+      const query = 'INSERT INTO shops (name, rent) VALUES ($1, $2) RETURNING *';
+      const values = [name, rent];
+      const { rows } = await pool.query(query, values);
+      res.status(201).json({ message: 'Shop added', shop: rows[0] });
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
   });
 
   // Get all products
 app.get('/products', async (req, res) => {
     try {
       const query = 'SELECT * FROM products';
-      const { rows } = await Client.query(query);
+      const { rows } = await pool.query(query);
       res.json(rows);
     } catch (err) {
       res.status(500).send(err.message);
@@ -87,7 +72,7 @@ app.get('/products/:id', async (req, res) => {
     try {
       const productId = req.params.id;
       const query = 'SELECT * FROM products WHERE productId = $1';
-      const { rows } = await Client.query(query, [productId]);
+      const { rows } = await pool.query(query, [productId]);
   
       if (rows.length === 0) {
         res.status(404).send('Product not found');
@@ -111,7 +96,7 @@ app.post('/products', async (req, res) => {
       const query = 'INSERT INTO products (productName, category, description) VALUES ($1, $2, $3';
       const values = [productName, category, description];
   
-      await Client.query(query, values);
+      await pool.query(query, values);
   
       res.status(201).send('Product added successfully');
     } catch (err) {
@@ -133,7 +118,7 @@ app.put('/products/:id', async (req, res) => {
       const query = 'UPDATE products SET productName = $1, category = $2, description = $3 WHERE productId = $4';
       const values = [productName, category, description, productId];
   
-      await Client.query(query, values);
+      await pool.query(query, values);
   
       res.send('Product updated successfully');
     } catch (err) {
@@ -181,7 +166,7 @@ app.get('/purchases', async (req, res) => {
   
       const values = [shopId, productIds];
   
-      const result = await Client.query(query, values);
+      const result = await pool.query(query, values);
   
       res.send(result.rows);
     } catch (err) {
@@ -196,7 +181,7 @@ app.get('/purchases', async (req, res) => {
       const query = 'SELECT * FROM purchases WHERE shopId = $1';
       const values = [shopId];
   
-      const result = await Client.query(query, values);
+      const result = await pool.query(query, values);
   
       res.send(result.rows);
     } catch (err) {
@@ -210,7 +195,7 @@ app.get('/purchases', async (req, res) => {
       const query = 'SELECT * FROM purchases WHERE productid = $1';
       const values = [productId];
   
-      const result = await Client.query(query, values);
+      const result = await pool.query(query, values);
   
       res.send(result.rows);
     } catch (err) {
@@ -229,7 +214,7 @@ app.get('/purchases', async (req, res) => {
       `;
       const values = [shopId];
   
-      const result = await Client.query(query, values);
+      const result = await pool.query(query, values);
   
       res.send(result.rows);
     } catch (err) {
@@ -248,7 +233,7 @@ app.get('/purchases', async (req, res) => {
       `;
       const values = [productId];
   
-      const result = await Client.query(query, values);
+      const result = await pool.query(query, values);
   
       res.send(result.rows);
     } catch (err) {
@@ -270,7 +255,7 @@ app.get('/purchases', async (req, res) => {
       `;
       const values = [body.shopId, body.productid, body.quantity, body.price];
   
-      const result = await Client.query(query, values);
+      const result = await pool.query(query, values);
   
       res.status(201).send(`Purchase added with ID: ${result.rows[0].purchaseid}`);
     } catch (err) {
