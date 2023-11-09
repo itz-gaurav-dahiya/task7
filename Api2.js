@@ -127,53 +127,107 @@ app.put('/products/:id', async (req, res) => {
   });
   
   
-  // Get purchases with filtering and sorting
+//   // Get purchases with filtering and sorting
+// app.get('/purchases', async (req, res) => {
+//     try {
+//       const shopid = req.query.shop;
+//       const productids = req.query.product ? req.query.product.split(',') : [];
+//       const sort = req.query.sort;
+  
+//       let query = 'SELECT * FROM purchases';
+  
+//       if (shopid) {
+//         query += ` WHERE shopid = $1`;
+//       }
+  
+//       if (productids.length > 0) {
+//         query += shopid ? ' AND' : ' WHERE';
+//         query += ` productid = ANY($2)`;
+//       }
+  
+//       if (sort) {
+//         switch (sort) {
+//           case 'QtyAsc':
+//             query += ' ORDER BY quantity ASC';
+//             break;
+//           case 'QtyDesc':
+//             query += ' ORDER BY quantity DESC';
+//             break;
+//           case 'ValueAsc':
+//             query += ' ORDER BY (quantity * price) ASC';
+//             break;
+//           case 'ValueDesc':
+//             query += ' ORDER BY (quantity * price) DESC';
+//             break;
+//           default:
+//             break;
+//         }
+//       }
+  
+//       const values = [shopid, productids];
+  
+//       const result = await pool.query(query, values);
+  
+//       res.send(result.rows);
+//     } catch (err) {
+//       res.status(500).send(err.message);
+//     }
+//   });
+  
+
 app.get('/purchases', async (req, res) => {
-    try {
-      const shopid = req.query.shop;
-      const productids = req.query.product ? req.query.product.split(',') : [];
-      const sort = req.query.sort;
-  
-      let query = 'SELECT * FROM purchases';
-  
-      if (shopid) {
-        query += ` WHERE shopid = $1`;
-      }
-  
-      if (productids.length > 0) {
-        query += shopid ? ' AND' : ' WHERE';
-        query += ` productid = ANY($2)`;
-      }
-  
-      if (sort) {
-        switch (sort) {
-          case 'QtyAsc':
-            query += ' ORDER BY quantity ASC';
-            break;
-          case 'QtyDesc':
-            query += ' ORDER BY quantity DESC';
-            break;
-          case 'ValueAsc':
-            query += ' ORDER BY (quantity * price) ASC';
-            break;
-          case 'ValueDesc':
-            query += ' ORDER BY (quantity * price) DESC';
-            break;
-          default:
-            break;
-        }
-      }
-  
-      const values = [shopid, productids];
-  
-      const result = await pool.query(query, values);
-  
-      res.send(result.rows);
-    } catch (err) {
-      res.status(500).send(err.message);
+  try {
+    const shopid = req.query.shop;
+    const productids = req.query.product ? req.query.product.split(',') : [];
+    const sort = req.query.sort;
+
+    // Define placeholders for parameters
+    const placeholders = [];
+    const values = [];
+
+    let query = 'SELECT * FROM purchases';
+
+    if (shopid) {
+      placeholders.push('shopid = $1');
+      values.push(shopid);
     }
-  });
-  
+
+    if (productids.length > 0) {
+      placeholders.push('productid = ANY($2)');
+      values.push(productids);
+    }
+
+    if (sort) {
+      switch (sort) {
+        case 'QtyAsc':
+          query += ' ORDER BY quantity ASC';
+          break;
+        case 'QtyDesc':
+          query += ' ORDER BY quantity DESC';
+          break;
+        case 'ValueAsc':
+          query += ' ORDER BY (quantity * price) ASC';
+          break;
+        case 'ValueDesc':
+          query += ' ORDER BY (quantity * price) DESC';
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (placeholders.length > 0) {
+      query += ' WHERE ' + placeholders.join(' AND ');
+    }
+
+    const result = await pool.query(query, values);
+
+    res.send(result.rows);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 
   app.get('/purchases/shops/:id', async (req, res) => {
     try {
