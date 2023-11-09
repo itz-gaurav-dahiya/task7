@@ -85,25 +85,45 @@ app.get('/products/:id', async (req, res) => {
   });
 
   // Create a new product
+// app.post('/products', async (req, res) => {
+//     try {
+//       const body = req.body;
+//       if (!body.productname || !body.category || !body.description) {
+//         return res.status(400).send('Fill in all data of products');
+//       }
+  
+//       const { productname, category, description } = body;
+//       const query = 'INSERT INTO products (productname, category, description) VALUES ($1, $2, $3';
+//       const values = [productname, category, description];
+  
+//       await pool.query(query, values);
+  
+//       res.status(201).send('Product added successfully');
+//     } catch (err) {
+//       res.status(500).send(err.message);
+//     }
+//   });
+  
 app.post('/products', async (req, res) => {
-    try {
-      const body = req.body;
-      if (!body.productname || !body.category || !body.description) {
-        return res.status(400).send('Fill in all data of products');
-      }
-  
-      const { productname, category, description } = body;
-      const query = 'INSERT INTO products (productname, category, description) VALUES ($1, $2, $3';
-      const values = [productname, category, description];
-  
-      await pool.query(query, values);
-  
-      res.status(201).send('Product added successfully');
-    } catch (err) {
-      res.status(500).send(err.message);
+  try {
+    const body = req.body;
+    if (!body.productname || !body.category || !body.description) {
+      return res.status(400).send('Fill in all data of products');
     }
-  });
-  
+
+    const { productname, category, description } = body;
+    const query = 'INSERT INTO products (productname, category, description) VALUES ($1, $2, $3)';
+    const values = [productname, category, description];
+
+    await pool.query(query, values);
+
+    res.status(201).send('Product added successfully');
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+
   // Update a product by ID
 app.put('/products/:id', async (req, res) => {
     try {
