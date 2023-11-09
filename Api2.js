@@ -320,7 +320,7 @@ app.get('/purchases', async (req, res) => {
         if(shopid){
           result=result.filter((st)=>(result.shopid=shopid))
         }
-          res.send(result.rows);
+          res.send(result);
         }
       });
 });
