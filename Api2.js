@@ -252,9 +252,54 @@ app.get('/purchases', async (req, res) => {
     const shopid = req.query.shop;
     const productids = req.query.product ? req.query.product.split(',') : [];
     const sort = req.query.sort;
-    
+    const queryValue = req.query.query;
+
+    // Define placeholders for parameters
+    const placeholders = [];
+    const values = [];
+
     let query = 'SELECT * FROM purchases';
-    const result = await pool.query(query, query);
+
+    if (shopid) {
+      placeholders.push('shopid = $1');
+      values.push(shopid);
+    }
+
+    if (productids.length > 0) {
+      placeholders.push('productid = ANY($2)');
+      values.push(productids);
+    }
+
+    if (queryValue) {
+      // Add your specific condition based on the value of the query parameter
+      placeholders.push('your_column_name = $3');
+      values.push(queryValue);
+    }
+
+    if (placeholders.length > 0) {
+      query += ' WHERE ' + placeholders.join(' AND ');
+    }
+
+    if (sort) {
+      switch (sort) {
+        case 'QtyAsc':
+          query += ' ORDER BY quantity ASC';
+          break;
+        case 'QtyDesc':
+          query += ' ORDER BY quantity DESC';
+          break;
+        case 'ValueAsc':
+          query += ' ORDER BY (quantity * price) ASC';
+          break;
+        case 'ValueDesc':
+          query += ' ORDER BY (quantity * price) DESC';
+          break;
+        default:
+          break;
+      }
+    }
+
+    const result = await pool.query(query, values);
 
     res.send(result.rows);
   } catch (err) {
