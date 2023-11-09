@@ -316,6 +316,10 @@ app.get('/purchases', async (req, res) => {
         if (err) {
           res.status(500).send(err.message);
         } else {
+
+        if(shopid){
+          result=result.filter((st)=>(result.shopid=shopid))
+        }
           res.send(result.rows);
         }
       });
