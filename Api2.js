@@ -307,22 +307,47 @@ app.put('/products/:id', async (req, res) => {
 //   }
 // });
 app.get('/purchases', async (req, res) => {
-    // Define placeholders for parameters
-      const shopid = req.query.shop;
-      const productids = req.query.product ? req.query.product.split(',').map(Number) : [];
-      const sort = req.query.sort;
-      const query = 'SELECT * FROM purchases';
-      pool.query(query, (err, result) => {
-        if (err) {
-          res.status(500).send(err.message);
-        } else {
+  try {
+    const shopid = req.query.shop;
+    const productids = req.query.product ? req.query.product.split(',').map(Number) : [];
+    const sort = req.query.sort;
+    const query = 'SELECT * FROM purchases';
 
-        if(shopid){
-          result=result.filter((st)=>(result.shopid=shopid))
-        }
-          res.send(result);
-        }
-      });
+    const result = await pool.query(query);
+
+    let filteredResult = result.rows;
+
+    if (shopid) {
+      filteredResult = filteredResult.filter((st) => st.shopid === parseInt(shopid));
+    }
+
+    if (productids.length > 0) {
+      filteredResult = filteredResult.filter((st) => productids.includes(st.productid));
+    }
+
+    if (sort) {
+      switch (sort) {
+        case 'QtyAsc':
+          filteredResult.sort((a, b) => a.quantity - b.quantity);
+          break;
+        case 'QtyDesc':
+          filteredResult.sort((a, b) => b.quantity - a.quantity);
+          break;
+        case 'ValueAsc':
+          filteredResult.sort((a, b) => (a.quantity * a.price) - (b.quantity * b.price));
+          break;
+        case 'ValueDesc':
+          filteredResult.sort((a, b) => (b.quantity * b.price) - (a.quantity * a.price));
+          break;
+        default:
+          break;
+      }
+    }
+
+    res.send(filteredResult);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 
