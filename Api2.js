@@ -70,9 +70,9 @@ app.get('/products', async (req, res) => {
 // Get a specific product by ID
 app.get('/products/:id', async (req, res) => {
     try {
-      const productId = req.params.id;
-      const query = 'SELECT * FROM products WHERE productId = $1';
-      const { rows } = await pool.query(query, [productId]);
+      const productid = req.params.id;
+      const query = 'SELECT * FROM products WHERE productid = $1';
+      const { rows } = await pool.query(query, [productid]);
   
       if (rows.length === 0) {
         res.status(404).send('Product not found');
@@ -88,13 +88,13 @@ app.get('/products/:id', async (req, res) => {
 app.post('/products', async (req, res) => {
     try {
       const body = req.body;
-      if (!body.productName || !body.category || !body.description) {
+      if (!body.productname || !body.category || !body.description) {
         return res.status(400).send('Fill in all data of products');
       }
   
-      const { productName, category, description } = body;
-      const query = 'INSERT INTO products (productName, category, description) VALUES ($1, $2, $3';
-      const values = [productName, category, description];
+      const { productname, category, description } = body;
+      const query = 'INSERT INTO products (productname, category, description) VALUES ($1, $2, $3';
+      const values = [productname, category, description];
   
       await pool.query(query, values);
   
@@ -107,16 +107,16 @@ app.post('/products', async (req, res) => {
   // Update a product by ID
 app.put('/products/:id', async (req, res) => {
     try {
-      const productId = req.params.id;
+      const productid = req.params.id;
       const body = req.body;
   
-      if (!body.productName || !body.category || !body.description) {
+      if (!body.productname || !body.category || !body.description) {
         return res.status(400).send('Fill in all data of the product');
       }
   
-      const { productName, category, description } = body;
-      const query = 'UPDATE products SET productName = $1, category = $2, description = $3 WHERE productId = $4';
-      const values = [productName, category, description, productId];
+      const { productname, category, description } = body;
+      const query = 'UPDATE products SET productname = $1, category = $2, description = $3 WHERE productid = $4';
+      const values = [productname, category, description, productid];
   
       await pool.query(query, values);
   
@@ -130,18 +130,18 @@ app.put('/products/:id', async (req, res) => {
   // Get purchases with filtering and sorting
 app.get('/purchases', async (req, res) => {
     try {
-      const shopId = req.query.shop;
-      const productIds = req.query.product ? req.query.product.split(',') : [];
+      const shopid = req.query.shop;
+      const productids = req.query.product ? req.query.product.split(',') : [];
       const sort = req.query.sort;
   
       let query = 'SELECT * FROM purchases';
   
-      if (shopId) {
-        query += ` WHERE shopId = $1`;
+      if (shopid) {
+        query += ` WHERE shopid = $1`;
       }
   
-      if (productIds.length > 0) {
-        query += shopId ? ' AND' : ' WHERE';
+      if (productids.length > 0) {
+        query += shopid ? ' AND' : ' WHERE';
         query += ` productid = ANY($2)`;
       }
   
@@ -164,7 +164,7 @@ app.get('/purchases', async (req, res) => {
         }
       }
   
-      const values = [shopId, productIds];
+      const values = [shopid, productids];
   
       const result = await pool.query(query, values);
   
@@ -177,9 +177,9 @@ app.get('/purchases', async (req, res) => {
 
   app.get('/purchases/shops/:id', async (req, res) => {
     try {
-      const shopId = req.params.id;
-      const query = 'SELECT * FROM purchases WHERE shopId = $1';
-      const values = [shopId];
+      const shopid = req.params.id;
+      const query = 'SELECT * FROM purchases WHERE shopid = $1';
+      const values = [shopid];
   
       const result = await pool.query(query, values);
   
@@ -191,9 +191,9 @@ app.get('/purchases', async (req, res) => {
   
   app.get('/purchases/products/:id', async (req, res) => {
     try {
-      const productId = req.params.id;
+      const productid = req.params.id;
       const query = 'SELECT * FROM purchases WHERE productid = $1';
-      const values = [productId];
+      const values = [productid];
   
       const result = await pool.query(query, values);
   
@@ -205,14 +205,14 @@ app.get('/purchases', async (req, res) => {
 
   app.get('/totalPurchase/shop/:id', async (req, res) => {
     try {
-      const shopId = req.params.id;
+      const shopid = req.params.id;
       const query = `
         SELECT productid, SUM(quantity) as totalQuantity, SUM(price * quantity) as totalValue
         FROM purchases
-        WHERE shopId = $1
+        WHERE shopid = $1
         GROUP BY productid
       `;
-      const values = [shopId];
+      const values = [shopid];
   
       const result = await pool.query(query, values);
   
@@ -224,14 +224,14 @@ app.get('/purchases', async (req, res) => {
 
   app.get('/totalPurchase/product/:id', async (req, res) => {
     try {
-      const productId = req.params.id;
+      const productid = req.params.id;
       const query = `
-        SELECT shopId, SUM(quantity) as totalQuantity, SUM(price * quantity) as totalValue
+        SELECT shopid, SUM(quantity) as totalQuantity, SUM(price * quantity) as totalValue
         FROM purchases
         WHERE productid = $1
-        GROUP BY shopId
+        GROUP BY shopid
       `;
-      const values = [productId];
+      const values = [productid];
   
       const result = await pool.query(query, values);
   
@@ -244,16 +244,16 @@ app.get('/purchases', async (req, res) => {
   app.post('/purchases', async (req, res) => {
     try {
       const body = req.body;
-      if (!body.shopId || !body.productid || !body.quantity || !body.price) {
+      if (!body.shopid || !body.productid || !body.quantity || !body.price) {
         return res.status(400).send("All purchase data must be provided.");
       }
   
       const query = `
-        INSERT INTO purchases (shopId, productid, quantity, price)
+        INSERT INTO purchases (shopid, productid, quantity, price)
         VALUES ($1, $2, $3, $4)
         RETURNING *
       `;
-      const values = [body.shopId, body.productid, body.quantity, body.price];
+      const values = [body.shopid, body.productid, body.quantity, body.price];
   
       const result = await pool.query(query, values);
   
@@ -265,17 +265,17 @@ app.get('/purchases', async (req, res) => {
   
 
 
-  function mapColumnNames(oldColumns) {
-    const columnMapping = {
-      shopId: 'shopid',
-      productId: 'productid',
-      purchaseId: 'purchaseid',
-      // Add more mappings here if needed
-    };
+  // function mapColumnNames(oldColumns) {
+  //   const columnMapping = {
+  //     shopid: 'shopid',
+  //     productid: 'productid',
+  //     purchaseid: 'purchaseid',
+  //     // Add more mappings here if needed
+  //   };
   
-    // Map the old column names to new names
-    const newColumns = oldColumns.map((column) => columnMapping[column] || column);
+  //   // Map the old column names to new names
+  //   const newColumns = oldColumns.map((column) => columnMapping[column] || column);
   
-    return newColumns;
-  }
+  //   return newColumns;
+  // }
   
