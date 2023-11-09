@@ -307,57 +307,18 @@ app.put('/products/:id', async (req, res) => {
 //   }
 // });
 app.get('/purchases', async (req, res) => {
-  try {
-    const shopid = req.query.shop;
-    const productids = req.query.product ? req.query.product.split(',').map(Number) : [];
-    const sort = req.query.sort;
-
     // Define placeholders for parameters
-    const placeholders = [];
-    const values = [];
-
-    let query = 'SELECT * FROM purchases';
-
-    if (shopid) {
-      placeholders.push('shopid = $1');
-      values.push(shopid);
-    }
-
-    if (productids.length > 0) {
-      // Use ::int[] to cast the array elements to integer
-      placeholders.push('productid = ANY($2::int[])');
-      values.push(productids);
-    }
-
-    if (sort) {
-      switch (sort) {
-        case 'QtyAsc':
-          query += ' ORDER BY quantity ASC';
-          break;
-        case 'QtyDesc':
-          query += ' ORDER BY quantity DESC';
-          break;
-        case 'ValueAsc':
-          query += ' ORDER BY (quantity * price) ASC';
-          break;
-        case 'ValueDesc':
-          query += ' ORDER BY (quantity * price) DESC';
-          break;
-        default:
-          break;
-      }
-    }
-
-    if (placeholders.length > 0) {
-      query += ' WHERE ' + placeholders.join(' AND ');
-    }
-
-    const result = await pool.query(query, values);
-
-    res.send(result.rows);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
+      const shopid = req.query.shop;
+      const productids = req.query.product ? req.query.product.split(',').map(Number) : [];
+      const sort = req.query.sort;
+      const query = 'SELECT * FROM purchases';
+      pool.query(query, (err, result) => {
+        if (err) {
+          res.status(500).send(err.message);
+        } else {
+          res.send(result.rows);
+        }
+      });
 });
 
 
