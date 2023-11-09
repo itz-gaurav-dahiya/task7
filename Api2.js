@@ -309,8 +309,8 @@ app.put('/products/:id', async (req, res) => {
 app.get('/purchases', async (req, res) => {
   try {
     const shopid = req.query.shop;
-    // const productids = req.query.product ? req.query.product.split(',').map(Number) : [];
-    const productids = req.query.product ? req.query.product.split(',').map(Number).map(id => id.replace(/^pr/, '')) : [];
+    const productids = req.query.product ? req.query.product.split(',').map(Number) : [];
+    // const productids = req.query.product ? req.query.product.split(',').map(Number).map(id => id.replace(/^pr/, '')) : [];
 
     const sort = req.query.sort;
     const query = 'SELECT * FROM purchases';
