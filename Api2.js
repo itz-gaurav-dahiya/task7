@@ -281,7 +281,7 @@ app.get('/purchases', async (req, res) => {
     try {
       const shopid = req.params.id;
       const query = `
-        SELECT productid, SUM(quantity) as totalQuantity, SUM(price * quantity) as totalValue
+        SELECT productid, SUM(quantity) as totalquantity, SUM(price * quantity) as totalvalue
         FROM purchases
         WHERE shopid = $1
         GROUP BY productid
@@ -300,7 +300,7 @@ app.get('/purchases', async (req, res) => {
     try {
       const productid = req.params.id;
       const query = `
-        SELECT shopid, SUM(quantity) as totalQuantity, SUM(price * quantity) as totalValue
+        SELECT shopid, SUM(quantity) as totalquantity, SUM(price * quantity) as totalvalue
         FROM purchases
         WHERE productid = $1
         GROUP BY shopid
